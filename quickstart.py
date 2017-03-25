@@ -19,7 +19,7 @@ MAX_USABLE_CELL = MAX_CELL - 1 # since we have an escape character at the front
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
-SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly'
+SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Google Sheets API Python Quickstart'
 
@@ -62,10 +62,11 @@ def main():
                     'version=v4')
     service = discovery.build('sheets', 'v4', http=http, discoveryServiceUrl=discoveryUrl)
     spreadsheetId = '1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4'
-    file_list = list_files(service, spreadsheetId)
-    print(file_list)
-    file_contents = read_file(service, spreadsheetId, '1') # get the file data for row 1
-    print(file_contents)
+    # file_list = list_files(service, spreadsheetId)
+    # print(file_list)
+    # file_contents = read_file(service, spreadsheetId, '1') # get the file data for row 1
+    # print(file_contents)
+    add_file(service, spreadsheetId, "007", "filename07.jpg", "sevensevensevensevensevensevensevenseven")
 
 def list_files(service, spreadsheetId):
     rangeName = 'Sheet1!B1:B'
@@ -81,24 +82,60 @@ def list_files(service, spreadsheetId):
                 fileList.append(cellData)
         return fileList
 
+
+"""
+current_comment = file_post.add_comment(encryption[:10000])
+encryption = encryption[10000:]
+
+#if it does not fit, then we will add a child comment to it and repeat
+if len(encryption) != 0:
+
+    while len(encryption) > 10000:
+        #to-do
+        current_comment = current_comment.reply(encryption[:10000])
+        encryption = encryption[10000:]
+
+if len(encryption) > 0:
+    current_comment.reply(encryption)
+"""
+
 def add_file(service, spreadsheetId, id, filename, data):
     """
     TODO: just the example code for now
     """
     # The A1 notation of a range to search for a logical table of data.
     # Values will be appended after the last row of the table.
-    range_ = ''  # TODO: Update placeholder value.
+    rangeName = 'Sheet1!A1:ZZZ'
 
-    # How the input data should be interpreted.
-    value_input_option = ''  # TODO: Update placeholder value.
+    value_input_option = 'RAW'
 
-    # How the input data should be inserted.
-    insert_data_option = ''  # TODO: Update placeholder value.
+    insert_data_option = 'INSERT_ROWS'
+
+    # [fileid, filename, data...]
+    fileRow = [escape_cell(id), escape_cell(filename)]
+
+    current_cell = data[:MAX_USABLE_CELL]
+    fileRow.append(escape_cell(current_cell))
+    data = data[MAX_USABLE_CELL:]
+    while len(data) > MAX_USABLE_CELL:
+        current_cell = data[:MAX_USABLE_CELL]
+        fileRow.append(escape_cell(current_cell))
+        data = data[MAX_USABLE_CELL:]
+
+    values = [
+        fileRow
+    ]
 
     value_range_body = {
-        # TODO: Add desired entries to the request body.
+        'values': values
     }
-    request = service.spreadsheets().values().append(spreadsheetId=spreadsheet_id, range=range_, valueInputOption=value_input_option, insertDataOption=insert_data_option, body=value_range_body)
+    request = service.spreadsheets().values().append(
+        spreadsheetId=spreadsheetId,
+        range=rangeName,
+        valueInputOption=value_input_option,
+        insertDataOption=insert_data_option,
+        body=value_range_body
+    )
     response = request.execute()
 
 def read_file(service, spreadsheetId, fileId):
