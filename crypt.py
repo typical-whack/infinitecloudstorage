@@ -11,11 +11,6 @@ class FernetCipher(object):
     def __init__(self, key):
         # turns the password into a 32char long key
         b64 = base64.urlsafe_b64encode(hashlib.sha256(key).digest())
-
-        # make sure keys are repeatable
-        with open("keys.txt", 'a') as ko:
-            ko.write(b64)
-            ko.write('\n')
         self.key = Fernet(b64)
 
     def encrypt(self, plaintext):
