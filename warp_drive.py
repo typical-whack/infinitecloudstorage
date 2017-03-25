@@ -204,7 +204,7 @@ class WarpDrive:
                 'range': {
                     "sheetId": 0,
                     "dimension": "ROWS",
-                    "startIndex": row,
+                    "startIndex": row - 1,
                     "endIndex": row
                 }
             }
