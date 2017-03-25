@@ -33,11 +33,7 @@ SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Google Sheets API Python Quickstart'
 
-def main():
-    warp_drive = WarpDrive(DIRECTORY_SHEET_ID)
     # warp_drive.list_files()
-    data = "this is the contents of the file that im using to test the full creation of a file in the sheets drive2222"
-    # warp_drive.add_file("123e4567-e89b-12d3-a456-426655440010", "testfullfilecreation2.txt", len(data), "2017-03-25T15:32:23+00:00", data)
     # print(warp_drive.read_file("123e4567-e89b-12d3-a456-426655440010"))
     warp_drive.delete_file("123e4567-e89b-12d3-a456-426655440002")
 
