@@ -22,6 +22,9 @@ FERNET_CIPHER = crypt.FernetCipher(KEY)
 
 MAX_CELL = 50000
 MAX_USABLE_CELL = MAX_CELL - 1 # since we have an escape character at the front
+MAX_COLUMNS = 256
+MAX_CELLS = 2000000
+MAX_ROWS = 7812 # MAX CELLS / MAX COLUMNS
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
@@ -79,9 +82,10 @@ def main():
     # add_spreadsheet(service)
     dataSpreadsheetId = "1Dcbbqtvw_ReiPbJ7LQ9Y7RxXS95sO7AWDfQrB1ilZ84"
     # create_directory_entry(service, spreadsheetId, "009", "testcreatedirent.txt", "2560", "2017-03-25T15:32:23+00:00", dataSpreadsheetId)
-    with open("mobydick.txt", 'rb') as fo:
-        plaintext = fo.read()
-    write_data(service, dataSpreadsheetId, plaintext)
+    # with open("mobydick.txt", 'rb') as fo:
+    #     plaintext = fo.read()
+    # write_data(service, dataSpreadsheetId, plaintext)
+    print(read_file(service, dataSpreadsheetId))
 
 def list_files(service, spreadsheetId):
     rangeName = 'Sheet1!B1:B'
@@ -187,16 +191,23 @@ def file_id_to_row(service, spreadsheetId, id):
     TODO: this might require another query but we probably dont want to do that...
     """
 
+def read_file(service, spreadsheetId):
+    joinedData = ""
+    for row in range(1, MAX_ROWS):
+        isData, data = read_row(service, spreadsheetId, row)
+        if not isData:
+            return joinedData
+        joinedData += data
+    return joinedData
 
-def read_file(service, spreadsheetId, row):
-    """
-    read the file stored in the associated row
-    """
-    rangeName = 'Sheet1!' + "C" + row + ":" + row
+
+def read_row(service, spreadsheetId, row):
+    rangeName = 'Sheet1!' + "A" + str(row) + ":" + str(row)
     result = service.spreadsheets().values().get(spreadsheetId=spreadsheetId, range=rangeName).execute()
     values = result.get('values', [])
+
     if not values:
-        print('No data found.')
+        return False, ""
     else:
         for row in values:
             joinedData = ""
@@ -204,7 +215,7 @@ def read_file(service, spreadsheetId, row):
                 cellData = unescape_cell(cell)
                 joinedData = joinedData + cellData
             decrypted_data = FERNET_CIPHER.decrypt(joinedData)
-            return decrypted_data
+            return True, decrypted_data
 
 def unescape_cell(cell):
     # assert cell[0] is "`", "cell that you're trying to unescape isn't escaped!"
