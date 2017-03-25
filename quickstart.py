@@ -73,7 +73,7 @@ def main():
     service = discovery.build('sheets', 'v4', http=http, discoveryServiceUrl=discoveryUrl)
 
 def list_files(service, spreadsheetId):
-    rangeName = 'Sheet1!B1:B'
+    rangeName = 'Sheet1!A1:E'
     result = service.spreadsheets().values().get(spreadsheetId=spreadsheetId, range=rangeName).execute()
     values = result.get('values', [])
     if not values:
@@ -81,9 +81,12 @@ def list_files(service, spreadsheetId):
     else:
         fileList = []
         for row in values:
-            for cell in row:
-                cellData = unescape_cell(cell)
-                fileList.append(cellData)
+            fileData = {'fileId': unescape_cell(row[0]),
+                     'fileName': unescape_cell(row[1]),
+                     'size': unescape_cell(row[2]),
+                     'date': unescape_cell(row[3])}
+
+            fileList.append(fileData)
         return fileList
 
 def add_file(service, spreadsheetId, fileid, filename, size, date, data):
