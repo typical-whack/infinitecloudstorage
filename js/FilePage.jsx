@@ -53,11 +53,13 @@ const FilePage = React.createClass({
 
     renderUpload: function(onSubmit){
         return (
-            <div style={{align: 'left', width: '210px'}}>
-                <p>Upload File</p>
+            <div style={{align: 'left', width: '170px'}}>
+                <p style={{textAlign: 'center'}}>Upload File</p>
                 <form id='customForm' style={{marginBottom: '15px'}}>
                     <input type='file' type='file' name='file' id='fileUpload'/>
-                    <Button type='button' style={styles.bsButton} onClick={onSubmit}>Upload</Button>
+                    <div >
+                        <Button type='button' style={styles.bsButton} onClick={onSubmit}>Upload</Button>
+                    </div>
                 </form>
             </div>
         );
@@ -151,15 +153,17 @@ const FilePage = React.createClass({
                 error: 'Failed to download file'
             });
         };
-        api.getFile(event.target.id, success, error);
+        api.getFile(event.target.id, event.target.text, success, error);
     },
 
     renderFile: function(f) {
         return (
             <tr key={'file:' + f.id}>
-                <td> <a id={f.id} style={{cursor:'pointer'}} onClick={this.getFile}>
-                    {f.file_name}
-                </a> </td>
+                <td>
+                    <a id={f.id} style={{cursor:'pointer'}} onClick={this.getFile}>
+                        {f.file_name}
+                    </a>
+                </td>
                 <td> {f.file_size} </td>
                 <td> {f.last_modified} </td>
                 <td>
@@ -245,30 +249,23 @@ const styles = {
     },
 
     bsButton: {
-        margin: '0 auto',
         marginRight: 'auto',
         marginLeft: 'auto',
         display: 'inline',
         marginTop: '15px',
-        padding: '1px 5px',
         fontSize: '12px',
         lineHeight: '1.5',
         borderRadius: '3px',
         color: '#fff',
         backgroundColor: '#337ab7',
         borderColor: '#2e6da4',
-        display: 'inline-block',
-        padding: '6px 12px',
-        marginBottom: 0,
+        display: 'block',
         fontWeight: 400,
         textAlign: 'center',
         whiteSpace: 'nowrap',
         verticalAlign: 'middle',
         touchAction: 'manipulation',
         cursor: 'pointer',
-        WebkitUserSelect: 'none',
-        MozUserSelect: 'none',
-        msUserSelect: 'none',
         userSelect: 'none',
         backgroundImage: 'none',
         border: '1px solid transparent'

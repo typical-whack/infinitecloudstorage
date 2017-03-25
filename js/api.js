@@ -21,12 +21,13 @@ function deleteFile(id, success, error) {
     });
 }
 
-function getFile(id, success, error) {
+function getFile(id, file_name, success, error) {
     $.ajax({
         url: '/get_file',
-        method: 'POST',
+        method: 'GET',
         data: {
-            id: id
+            id: id,
+            file_name: file_name
         },
         success: success,
         error: error
