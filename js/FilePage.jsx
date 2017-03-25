@@ -2,8 +2,24 @@ import React from 'react';
 import { Button, Col, Grid, Jumbotron, PageHeader, Row} from 'react-bootstrap';
 import FileUploadProgress from 'react-fileupload-progress';
 import ReactDOM from 'react-dom';
+import api from './api.js';
 
 const FilePage = React.createClass({
+    getInitialState() {
+        return {
+            files: [{
+                file_name: 'Test Name',
+                file_size: '101010101',
+                last_modified: '01/01/01',
+                id: '101091i201293123'
+            }],
+            loading: 'Files Loading'
+        };
+    },
+
+    componentWillMount: function() {
+        this.fetchFiles();
+    },
 
     uploadFile: function(event) {
         event.preventDefault();
@@ -18,12 +34,32 @@ const FilePage = React.createClass({
         api.uploadFile(file, success, error);
     },
 
+    fetchFiles: function() {
+        const success = (results) => {
+            this.setState({
+                loading: 'No Files'
+            })
+            // this.setState({
+            //     files: results.files
+            // });
+        };
+        const error = (results) => {
+            this.setState({
+                loading: 'Error getting files'
+            });
+        };
+        api.getFiles(success, error);
+    },
+
     renderUpload: function(onSubmit){
         return (
-            <form id='customForm' style={{marginBottom: '15px'}}>
-                <input type='file' type='file' name='file' id='fileUpload'/>
-                <Button type='button' style={styles.bsButton} onClick={onSubmit}>Upload</Button>
-            </form>
+            <div style={{align: 'left', width: '210px'}}>
+                <p>Upload File</p>
+                <form id='customForm' style={{marginBottom: '15px'}}>
+                    <input type='file' type='file' name='file' id='fileUpload'/>
+                    <Button type='button' style={styles.bsButton} onClick={onSubmit}>Upload</Button>
+                </form>
+            </div>
         );
     },
 
@@ -62,12 +98,85 @@ const FilePage = React.createClass({
         return new FormData(document.getElementById('customForm'));
     },
 
+    renderTable: function () {
+        return (
+            <div key='files'>
+                <table className='table table-striped table-condensed'>
+                    <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>File Size</th>
+                            <th>Date Last Modified</th>
+                            <th>Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {this.state.files.map(this.renderFile)}
+                    </tbody>
+                </table>
+            </div>
+        );
+    },
+
+    removeFromList: function(id) {
+        const tempList = this.state.files;
+        tempList.forEach(function(e, index) {
+            if (e.id === id) {
+                tempList.splice(index);
+            }
+        }, this);
+        this.setState({
+            files: tempList
+        });
+    },
+
+    removeFile: function(event) {
+        const success = (results) => {
+            //this.removeFromList(results.id);
+        };
+        const error = (results) => {
+            this.setState({
+                error: 'Failed to remove file'
+            });
+        };
+        api.deleteFile(event.target.id, success, error);
+    },
+
+    getFile: function(event) {
+        const success = (results) => {
+            //this.removeFromList(results.id);
+        };
+        const error = (results) => {
+            this.setState({
+                error: 'Failed to download file'
+            });
+        };
+        api.getFile(event.target.id, success, error);
+    },
+
+    renderFile: function(f) {
+        return (
+            <tr key={'file:' + f.id}>
+                <td> <a id={f.id} style={{cursor:'pointer'}} onClick={this.getFile}>
+                    {f.file_name}
+                </a> </td>
+                <td> {f.file_size} </td>
+                <td> {f.last_modified} </td>
+                <td>
+                    <a id={f.id} style={{cursor:'pointer'}} onClick={this.removeFile}>
+                        Remove
+                    </a>
+                </td>
+            </tr>
+         );
+    },
+
     render: function() {
         return (
             <Jumbotron>
                 <PageHeader className='container'>Infinite Cloud Storage!</PageHeader>
                 <div className='container'>
-                    <p>Upload File</p>
+
                     <FileUploadProgress key='ex2' url='http://localhost:5000/upload_file'
                         onProgress={(e, request, progress) => {console.log('progress', e, request, progress);}}
                         onLoad={ (e, request) => {console.log('load', e, request);}}
@@ -78,6 +187,14 @@ const FilePage = React.createClass({
                         progressRenderer={this.renderProgress}
                         />
                 </div>
+                {this.state.files.length
+                    ? <div className='container'>
+                        {this.renderTable()}
+                    </div>
+                    : <div className='container'>
+                        <p> {this.state.loading} </p>
+                    </div>
+                }
             </Jumbotron>
         );
     }
@@ -127,21 +244,12 @@ const styles = {
         opacity: '.2'
     },
 
-    bslabel: {
-        display: 'inline-block',
-        maxWidth: '100%',
-        marginBottom: '5px',
-        fontWeight: 700
-    },
-
-    bsHelp: {
-        display: 'block',
-        marginTop: '5px',
-        marginBottom: '10px',
-        color: '#737373'
-    },
-
     bsButton: {
+        margin: '0 auto',
+        marginRight: 'auto',
+        marginLeft: 'auto',
+        display: 'inline',
+        marginTop: '15px',
         padding: '1px 5px',
         fontSize: '12px',
         lineHeight: '1.5',
@@ -165,22 +273,6 @@ const styles = {
         backgroundImage: 'none',
         border: '1px solid transparent'
     },
-    btn_file_input: {
-        position: 'relative',
-        overflow: 'hidden',
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        min_width: '100%',
-        min_height: '100%',
-        font_size: '100px',
-        text_align: 'right',
-        opacity: 0,
-        outline: 'none',
-        background: 'white',
-        cursor: 'inherit',
-        display: 'block'
-    }
 };
 
 

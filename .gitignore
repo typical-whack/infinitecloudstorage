@@ -4,3 +4,5 @@ client_secret.json
 *.pyc
 node_modules/
 venv/
+static/
+static/bundle.js
