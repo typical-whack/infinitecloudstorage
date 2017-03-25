@@ -13,6 +13,9 @@ try:
 except ImportError:
     flags = None
 
+MAX_CELL = 50000
+MAX_USABLE_CELL = MAX_CELL - 1 # since we have an escape character at the front
+
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
 SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly'
@@ -51,17 +54,14 @@ def get_credentials():
 def main():
     """
     Shows basic usage of the Sheets API.
-
-    Queries column A of the shared sheet:
-    https://docs.google.com/spreadsheets/d/1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4/edit#gid=0
     """
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
                     'version=v4')
-    service = discovery.build('sheets', 'v4', http=http,
-                              discoveryServiceUrl=discoveryUrl)
-    list(service)
+    service = discovery.build('sheets', 'v4', http=http, discoveryServiceUrl=discoveryUrl)
+    file_contents = read_file(service, '1') # get the file data for row 1
+    print(file_contents)
 
 def list(service):
     """
@@ -69,8 +69,7 @@ def list(service):
     """
     spreadsheetId = '1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4'
     rangeName = 'Sheet1!A1:B'
-    result = service.spreadsheets().values().get(
-        spreadsheetId=spreadsheetId, range=rangeName).execute()
+    result = service.spreadsheets().values().get(spreadsheetId=spreadsheetId, range=rangeName).execute()
     values = result.get('values', [])
 
     if not values:
@@ -78,9 +77,63 @@ def list(service):
     else:
         print('ID, Filename:')
         for row in values:
-            # Print columns A and E, which correspond to indices 0 and 4.
             print('%s, %s' % (row[0], row[1]))
 
+def add_file(service, id, filename, data):
+    """
+    TODO: just the example code for now
+    """
+    spreadsheetId = '1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4'
+    # The A1 notation of a range to search for a logical table of data.
+    # Values will be appended after the last row of the table.
+    range_ = ''  # TODO: Update placeholder value.
+
+    # How the input data should be interpreted.
+    value_input_option = ''  # TODO: Update placeholder value.
+
+    # How the input data should be inserted.
+    insert_data_option = ''  # TODO: Update placeholder value.
+
+    value_range_body = {
+        # TODO: Add desired entries to the request body.
+    }
+    request = service.spreadsheets().values().append(spreadsheetId=spreadsheet_id, range=range_, valueInputOption=value_input_option, insertDataOption=insert_data_option, body=value_range_body)
+    response = request.execute()
+
+def read_file(service, id):
+    row = file_id_to_row(service, id)
+    return read_file(service, row)
+
+def file_id_to_row(service, id):
+    """
+    TODO: this might require another query but we probably dont want to do that...
+    """
+
+def read_file(service, row):
+    """
+    read the file stored in the associated row
+    """
+    spreadsheetId = '1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4'
+    rangeName = 'Sheet1!' + "C" + row + ":1"
+    result = service.spreadsheets().values().get(spreadsheetId=spreadsheetId, range=rangeName).execute()
+    values = result.get('values', [])
+    if not values:
+        print('No data found.')
+    else:
+        for row in values:
+            joinedData = ""
+            for cell in row:
+                cellData = unescape_cell(cell)
+                joinedData = joinedData + cellData
+            return joinedData
+
+def unescape_cell(cell):
+    # assert cell[0] is "`", "cell that you're trying to unescape isn't escaped!"
+    return cell[1:]
+
+def escape_cell(data):
+    # assert data length is less or equal to MAX_USABLE_CELL
+    return "`" + data
 
 if __name__ == '__main__':
     main()
