@@ -65,7 +65,6 @@ def main():
     """
     Shows basic usage of the Sheets API.
     """
-
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
@@ -182,14 +181,13 @@ def file_id_to_row(service, spreadsheetId, id):
 def read_file(service, spreadsheetId):
     joinedData = ""
     for row in range(1, MAX_ROWS):
-        isData, data = read_row(service, spreadsheetId, row)
+        isData, data = read_row(service, spreadsheetId, row, True)
         if not isData:
             return joinedData
         joinedData += data
     return joinedData
 
-
-def read_row(service, spreadsheetId, row):
+def read_row(service, spreadsheetId, row, shouldDecrypt):
     rangeName = 'Sheet1!' + "A" + str(row) + ":" + str(row)
     result = service.spreadsheets().values().get(spreadsheetId=spreadsheetId, range=rangeName).execute()
     values = result.get('values', [])
@@ -202,8 +200,24 @@ def read_row(service, spreadsheetId, row):
             for cell in row:
                 cellData = unescape_cell(cell)
                 joinedData = joinedData + cellData
-            decrypted_data = FERNET_CIPHER.decrypt(joinedData)
-            return True, decrypted_data
+            if shouldDecrypt:
+                return True, FERNET_CIPHER.decrypt(joinedData)
+            return True, joinedData
+
+def delete_file(service, spreadsheetId, row):
+    ignored, rowData = read_row(service, spreadsheetId, row, False)
+    dataSpreadsheetId = rowData[4]
+    delete_row(service, spreadsheetId, row)
+    # delete_drive_file(service, dataSpreadsheetId)
+
+def delete_row(service, spreadsheetId, row):
+    rangeName = 'Sheet1!' + "A" + str(row) + ":" + str(row)
+    clear_values_request_body = { }
+    request = service.spreadsheets().values().clear(spreadsheetId=spreadsheetId, range=rangeName, body=clear_values_request_body)
+    response = request.execute()
+
+# def delete_drive_file(service, dataSpreadsheetId):
+#     service.files().delete(fileId=dataSpreadsheetId).execute()
 
 def unescape_cell(cell):
     # assert cell[0] is "`", "cell that you're trying to unescape isn't escaped!"
