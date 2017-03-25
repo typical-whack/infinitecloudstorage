@@ -71,24 +71,9 @@ def main():
     discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
                     'version=v4')
     service = discovery.build('sheets', 'v4', http=http, discoveryServiceUrl=discoveryUrl)
-    spreadsheetId = '1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4' # directory sheet
-    # file_list = list_files(service, spreadsheetId)
-    # print(file_list)
-    # file_contents = read_file(service, spreadsheetId, '1') # get the file data for row 1
-    # print(file_contents)
-    # add_file(service, spreadsheetId, "008", "filename08.txt", "eighteighteighteighteighteight")
-    # file_contents = read_file(service, spreadsheetId, '8') # get the file data for row 8
-    # print(file_contents)
-    # add_spreadsheet(service)
-    dataSpreadsheetId = "1Dcbbqtvw_ReiPbJ7LQ9Y7RxXS95sO7AWDfQrB1ilZ84"
-    # create_directory_entry(service, spreadsheetId, "009", "testcreatedirent.txt", "2560", "2017-03-25T15:32:23+00:00", dataSpreadsheetId)
-    # with open("mobydick.txt", 'rb') as fo:
-    #     plaintext = fo.read()
-    # write_data(service, dataSpreadsheetId, plaintext)
-    print(read_file(service, dataSpreadsheetId))
 
 def list_files(service, spreadsheetId):
-    rangeName = 'Sheet1!B1:B'
+    rangeName = 'Sheet1!A1:E'
     result = service.spreadsheets().values().get(spreadsheetId=spreadsheetId, range=rangeName).execute()
     values = result.get('values', [])
     if not values:
@@ -96,9 +81,12 @@ def list_files(service, spreadsheetId):
     else:
         fileList = []
         for row in values:
-            for cell in row:
-                cellData = unescape_cell(cell)
-                fileList.append(cellData)
+            fileData = {'fileId': unescape_cell(row[0]),
+                     'fileName': unescape_cell(row[1]),
+                     'size': unescape_cell(row[2]),
+                     'date': unescape_cell(row[3])}
+
+            fileList.append(fileData)
         return fileList
 
 def add_file(service, spreadsheetId, fileid, filename, size, date, data):
@@ -180,7 +168,7 @@ def add_spreadsheet(service):
     spreadsheet_body = { }
     request = service.spreadsheets().create(body=spreadsheet_body)
     response = request.execute()
-    return response[spreadsheetId]
+    return response['spreadsheetId']
 
 def read_file(service, spreadsheetId, fileId):
     row = file_id_to_row(service, spreadsheetId, fileId)
@@ -225,7 +213,7 @@ def unescape_cell(cell):
 
 def escape_cell(data):
     # assert data length is less or equal to MAX_USABLE_CELL
-    return "`" + data
+    return "`" + str(data)
 
 if __name__ == '__main__':
     main()
