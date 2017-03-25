@@ -3,6 +3,8 @@ import httplib2
 import os
 import unicodedata
 
+import crypt
+
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
@@ -13,6 +15,9 @@ try:
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 except ImportError:
     flags = None
+
+KEY = "PASSWORD"
+FERNET_CIPHER = crypt.FernetCipher(KEY)
 
 MAX_CELL = 50000
 MAX_USABLE_CELL = MAX_CELL - 1 # since we have an escape character at the front
@@ -56,6 +61,7 @@ def main():
     """
     Shows basic usage of the Sheets API.
     """
+
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
@@ -66,7 +72,9 @@ def main():
     # print(file_list)
     # file_contents = read_file(service, spreadsheetId, '1') # get the file data for row 1
     # print(file_contents)
-    add_file(service, spreadsheetId, "007", "filename07.jpg", "sevensevensevensevensevensevensevenseven")
+    # add_file(service, spreadsheetId, "008", "filename08.txt", "eighteighteighteighteighteight")
+    # file_contents = read_file(service, spreadsheetId, '8') # get the file data for row 8
+    # print(file_contents)
 
 def list_files(service, spreadsheetId):
     rangeName = 'Sheet1!B1:B'
@@ -82,45 +90,22 @@ def list_files(service, spreadsheetId):
                 fileList.append(cellData)
         return fileList
 
-
-"""
-current_comment = file_post.add_comment(encryption[:10000])
-encryption = encryption[10000:]
-
-#if it does not fit, then we will add a child comment to it and repeat
-if len(encryption) != 0:
-
-    while len(encryption) > 10000:
-        #to-do
-        current_comment = current_comment.reply(encryption[:10000])
-        encryption = encryption[10000:]
-
-if len(encryption) > 0:
-    current_comment.reply(encryption)
-"""
-
 def add_file(service, spreadsheetId, id, filename, data):
-    """
-    TODO: just the example code for now
-    """
-    # The A1 notation of a range to search for a logical table of data.
-    # Values will be appended after the last row of the table.
     rangeName = 'Sheet1!A1:ZZZ'
-
     value_input_option = 'RAW'
-
     insert_data_option = 'INSERT_ROWS'
 
+    encrypted_data = FERNET_CIPHER.encrypt(data)
     # [fileid, filename, data...]
     fileRow = [escape_cell(id), escape_cell(filename)]
 
-    current_cell = data[:MAX_USABLE_CELL]
+    current_cell = encrypted_data[:MAX_USABLE_CELL]
     fileRow.append(escape_cell(current_cell))
-    data = data[MAX_USABLE_CELL:]
-    while len(data) > MAX_USABLE_CELL:
-        current_cell = data[:MAX_USABLE_CELL]
+    encrypted_data = encrypted_data[MAX_USABLE_CELL:]
+    while len(encrypted_data) > MAX_USABLE_CELL:
+        current_cell = encrypted_data[:MAX_USABLE_CELL]
         fileRow.append(escape_cell(current_cell))
-        data = data[MAX_USABLE_CELL:]
+        encrypted_data = encrypted_data[MAX_USABLE_CELL:]
 
     values = [
         fileRow
@@ -147,11 +132,12 @@ def file_id_to_row(service, spreadsheetId, id):
     TODO: this might require another query but we probably dont want to do that...
     """
 
+
 def read_file(service, spreadsheetId, row):
     """
     read the file stored in the associated row
     """
-    rangeName = 'Sheet1!' + "C" + row + ":1"
+    rangeName = 'Sheet1!' + "C" + row + ":" + row
     result = service.spreadsheets().values().get(spreadsheetId=spreadsheetId, range=rangeName).execute()
     values = result.get('values', [])
     if not values:
@@ -162,7 +148,8 @@ def read_file(service, spreadsheetId, row):
             for cell in row:
                 cellData = unescape_cell(cell)
                 joinedData = joinedData + cellData
-            return joinedData
+            decrypted_data = FERNET_CIPHER.decrypt(joinedData)
+            return decrypted_data
 
 def unescape_cell(cell):
     # assert cell[0] is "`", "cell that you're trying to unescape isn't escaped!"
