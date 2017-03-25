@@ -83,7 +83,8 @@ def list_files(service, spreadsheetId):
             fileData = {'fileId': unescape_cell(row[0]),
                      'fileName': unescape_cell(row[1]),
                      'size': unescape_cell(row[2]),
-                     'date': unescape_cell(row[3])}
+                     'date': unescape_cell(row[3]),
+                     'dataSpreadsheetId': unescape_cell(row[4])}
 
             fileList.append(fileData)
         return fileList
@@ -195,17 +196,16 @@ def add_spreadsheet(service):
 
 def read_file(service, spreadsheetId, fileId):
     row = file_id_to_row(service, spreadsheetId, fileId)
-    return read_file(service, spreadsheetId, row)
+    return read_data(service, row['dataSpreadsheetId'])
 
-def file_id_to_row(service, spreadsheetId, id):
-    """
-    TODO: this might require another query but we probably dont want to do that...
-    """
+def file_id_to_row(service, spreadsheetId, fileId):
+    fileEntries = list_files(service, spreadsheetId)
+    return [element for element in fileEntries if element['fileId'] == fileId][0]
 
-def read_file(service, spreadsheetId):
+def read_data(service, dataSpreadsheetId):
     joinedData = ""
     for row in range(1, MAX_ROWS):
-        isData, data = read_row(service, spreadsheetId, row, True)
+        isData, data = read_row(service, dataSpreadsheetId, row, True)
         if not isData:
             return joinedData
         joinedData += data
@@ -228,7 +228,18 @@ def read_row(service, spreadsheetId, row, shouldDecrypt):
                 return True, FERNET_CIPHER.decrypt(joinedData)
             return True, joinedData
 
-def delete_file(service, spreadsheetId, row):
+def delete_file(service, spreadsheetId, fileId):
+    rangeName = 'Sheet1!A1:E'
+    result = service.spreadsheets().values().get(spreadsheetId=spreadsheetId, range=rangeName).execute()
+    values = result.get('values', [])
+    currentRow = 1
+    print(fileId)
+    for row in values:
+        if unescape_cell(row[0]) == fileId:
+            return delete_file_entry(service, spreadsheetId, currentRow)
+        currentRow += 1
+
+def delete_file_entry(service, spreadsheetId, row):
     ignored, rowData = read_row(service, spreadsheetId, row, False)
     dataSpreadsheetId = rowData[4]
     delete_row(service, spreadsheetId, row)
