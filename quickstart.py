@@ -49,11 +49,11 @@ def get_credentials():
     return credentials
 
 def main():
-    """Shows basic usage of the Sheets API.
+    """
+    Shows basic usage of the Sheets API.
 
-    Creates a Sheets API service object and prints the names and majors of
-    students in a sample spreadsheet:
-    https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
+    Queries column A of the shared sheet:
+    https://docs.google.com/spreadsheets/d/1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4/edit#gid=0
     """
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
@@ -61,9 +61,14 @@ def main():
                     'version=v4')
     service = discovery.build('sheets', 'v4', http=http,
                               discoveryServiceUrl=discoveryUrl)
+    list(service)
 
-    spreadsheetId = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
-    rangeName = 'Class Data!A2:E'
+def list(service):
+    """
+    lists all of the files in the current sheet and their associated IDs
+    """
+    spreadsheetId = '1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4'
+    rangeName = 'Sheet1!A1:B'
     result = service.spreadsheets().values().get(
         spreadsheetId=spreadsheetId, range=rangeName).execute()
     values = result.get('values', [])
@@ -71,10 +76,10 @@ def main():
     if not values:
         print('No data found.')
     else:
-        print('Name, Major:')
+        print('ID, Filename:')
         for row in values:
             # Print columns A and E, which correspond to indices 0 and 4.
-            print('%s, %s' % (row[0], row[4]))
+            print('%s, %s' % (row[0], row[1]))
 
 
 if __name__ == '__main__':
