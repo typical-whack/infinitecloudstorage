@@ -47,7 +47,7 @@ def update_file():
 def delete_file():
     print 'delete_file'
 
-@app.route('/get_all', methods=['POST'])
+@app.route('/get_all', methods=['GET'])
 def get_all():
     print 'get_all'
 
