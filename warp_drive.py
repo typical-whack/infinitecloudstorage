@@ -33,10 +33,6 @@ SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Google Sheets API Python Quickstart'
 
-    # warp_drive.list_files()
-    # print(warp_drive.read_file("123e4567-e89b-12d3-a456-426655440010"))
-    warp_drive.delete_file("123e4567-e89b-12d3-a456-426655440002")
-
 class WarpDrive:
 
     def __init__(self, directory_sheet_id):
