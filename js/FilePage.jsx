@@ -7,12 +7,7 @@ import api from './api.js';
 const FilePage = React.createClass({
     getInitialState() {
         return {
-            files: [{
-                file_name: 'Test Name',
-                file_size: '101010101',
-                last_modified: '01/01/01',
-                id: '101091i201293123'
-            }],
+            files: [],
             loading: 'Files Loading'
         };
     },
@@ -21,27 +16,12 @@ const FilePage = React.createClass({
         this.fetchFiles();
     },
 
-    uploadFile: function(event) {
-        event.preventDefault();
-        const file = document.getElementById('fileUpload').files[0];
-        console.log(file);
-        const success = () => {
-            console.log('Success');
-        };
-        const error = (results) => {
-            console.log(results);
-        };
-        api.uploadFile(file, success, error);
-    },
-
     fetchFiles: function() {
         const success = (results) => {
             this.setState({
-                loading: 'No Files'
+                loading: 'No Files',
+                files: results.data
             })
-            // this.setState({
-            //     files: results.files
-            // });
         };
         const error = (results) => {
             this.setState({
@@ -66,34 +46,7 @@ const FilePage = React.createClass({
     },
 
     renderProgress(progress, hasError, cancelHandler) {
-        if (hasError || progress > -1 ) {
-            let barStyle = Object.assign({}, styles.progressBar);
-            barStyle.width = progress + '%';
-
-            let message = (<span>{barStyle.width}</span>);
-            if (hasError) {
-                barStyle.backgroundColor = '#d9534f';
-                message = (<span >Failed to upload ...</span>);
-            }
-            else if (progress === 100){
-                message = (<span >Done</span>);
-            }
-            return (
-                <div>
-                    <div style={styles.progressWrapper}>
-                        <div style={barStyle}></div>
-                    </div>
-                    <button style={styles.cancelButton} onClick={cancelHandler}>
-                        <span>&times;</span>
-                    </button>
-                    <div style={{'clear':'left'}}>
-                        {message}
-                    </div>
-                </div>
-            );
-        } else {
-            return;
-        }
+        return;
     },
 
     formGetter(){
@@ -107,7 +60,7 @@ const FilePage = React.createClass({
                     <thead>
                         <tr>
                             <th>File Name</th>
-                            <th>File Size</th>
+                            <th>File Size (In Bytes)</th>
                             <th>Date Last Modified</th>
                             <th>Remove</th>
                         </tr>
@@ -123,7 +76,7 @@ const FilePage = React.createClass({
     removeFromList: function(id) {
         const tempList = this.state.files;
         tempList.forEach(function(e, index) {
-            if (e.id === id) {
+            if (e.file_id === id) {
                 tempList.splice(index);
             }
         }, this);
@@ -134,7 +87,7 @@ const FilePage = React.createClass({
 
     removeFile: function(event) {
         const success = (results) => {
-            //this.removeFromList(results.id);
+            this.removeFromList(results.data);
         };
         const error = (results) => {
             this.setState({
@@ -157,22 +110,35 @@ const FilePage = React.createClass({
     },
 
     renderFile: function(f) {
+        const link = window.location.protocol + '//' + window.location.host + '/get_file/';
         return (
-            <tr key={'file:' + f.id}>
+            <tr key={'file:' + f.file_id}>
                 <td>
-                    <a id={f.id} style={{cursor:'pointer'}} onClick={this.getFile}>
+                    <a style={{cursor:'pointer'}} href={link+f.file_id + '/' + f.file_name}>
                         {f.file_name}
                     </a>
                 </td>
-                <td> {f.file_size} </td>
-                <td> {f.last_modified} </td>
+                <td> {f.size} </td>
+                <td> {f.date} </td>
                 <td>
-                    <a id={f.id} style={{cursor:'pointer'}} onClick={this.removeFile}>
+                    <a id={f.file_id} style={{cursor:'pointer'}} onClick={this.removeFile}>
                         Remove
                     </a>
                 </td>
             </tr>
          );
+    },
+
+    addFile: function(file_list) {
+        const file = {
+            'file_id': file_list[0],
+            'file_name': file_list[1],
+            'size': file_list[2],
+            'date': file_list[3]
+        }
+        this.setState({
+            files: this.state.files.concat(file)
+        });
     },
 
     render: function() {
@@ -182,10 +148,11 @@ const FilePage = React.createClass({
                 <div className='container'>
 
                     <FileUploadProgress key='ex2' url='http://localhost:5000/upload_file'
-                        onProgress={(e, request, progress) => {console.log('progress', e, request, progress);}}
-                        onLoad={ (e, request) => {console.log('load', e, request);}}
-                        onError={ (e, request) => {console.log('error', e, request);}}
-                        onAbort={ (e, request) => {console.log('abort', e, request);}}
+                        onLoad={ (e, request) => {
+                            const file_list = JSON.parse(e.target.response).data;
+                            this.addFile(file_list);
+                        }}
+                        onError={ (e, request) => {console.log('error');}}
                         formGetter={this.formGetter}
                         formRenderer={this.renderUpload}
                         progressRenderer={this.renderProgress}

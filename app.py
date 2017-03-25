@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, redirect, url_for, request
+from flask import Flask, render_template, jsonify, redirect, url_for, request, make_response, Response
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import sys
@@ -16,9 +16,6 @@ WARP_DRIVE = WarpDrive("1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4")
 def hello_world():
   return render_template('index.html')
 
-def _pr(strin):
-    print(strin)
-
 @app.route('/upload_file', methods=['POST'])
 def add_file():
     file = request.files['file']
@@ -28,14 +25,6 @@ def add_file():
         filename = secure_filename(file.filename)
         data = file.read()
         file_id = uuid.uuid4()
-        _pr('-------filename-------')
-        _pr(filename)
-        _pr('-------file_id-------')
-        _pr(file_id)
-        _pr('-------time-------')
-        _pr(current_time)
-        # _pr('-------file-------')
-        # _pr(data)
 
         WARP_DRIVE.add_file(file_id, filename, len(data), current_time, data)
         return success((file_id, filename, len(data), now.isoformat()))
@@ -45,12 +34,17 @@ def add_file():
 def allowed_file(filename):
     return '.' in filename
 
-@app.route('/get_file', methods=['GET'])
-def get_file():
-    print 'get_file'
-    file_id = request.values.get('id')
-    file_name = request.values.get('file_name')
+@app.route('/get_file/<file_id>/<file_name>', methods=['GET'])
+def get_file(file_id, file_name):
     file_data = WARP_DRIVE.read_file(file_id)
+
+    response = make_response(file_data)
+    # This is the key: Set the right header for the response
+    # to be downloaded, instead of just printed on the browser
+    response.headers["Content-Disposition"] = \
+        u"attachment; filename={0}".format(file_name)
+    return response
+
     return success((file_name, file_data))
 
 @app.route('/update_file', methods=['POST'])
@@ -59,14 +53,12 @@ def update_file():
 
 @app.route('/delete_file', methods=['POST'])
 def delete_file():
-    print 'delete_file'
     file_id = request.values.get('id')
     WARP_DRIVE.delete_file(file_id)
     return success(file_id)
 
 @app.route('/get_all', methods=['GET'])
 def get_all():
-    print 'get_all'
     return success(WARP_DRIVE.list_files())
 
 def success(data):
