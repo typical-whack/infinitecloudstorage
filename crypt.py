@@ -6,7 +6,7 @@ from cryptography.fernet import Fernet
 KEY = "PASSWORD"
 
 
-class FernetCypher(object):
+class FernetCipher(object):
 
     def __init__(self, key):
         # turns the password into a 32char long key
@@ -42,7 +42,6 @@ class FernetCypher(object):
             fo.write(dec)
 
 if __name__ == "__main__":
-    f = FernetCypher(KEY)
+    f = FernetCipher(KEY)
     to_be_written = f.encrypt_file("unlimited.jpg")
     f.decrypt_file(to_be_written, "unlimited-too.jpg")
-
