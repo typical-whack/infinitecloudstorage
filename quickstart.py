@@ -88,6 +88,30 @@ def list_files(service, spreadsheetId):
             fileList.append(fileData)
         return fileList
 
+def update_file(service, spreadsheetId, data):
+    rangeName = 'Sheet1!A1:ZZZ'
+
+    encrypted_data = FERNET_CIPHER.encrypt(data)
+    totalDataCells = int(ceil(float(len(encrypted_data)) / float(MAX_USABLE_CELL)))
+    print(len(encrypted_data))
+    print(totalDataCells)
+
+    clear_values_request_body = { }
+    request = service.spreadsheets().values().clear(spreadsheetId=spreadsheetId, range=rangeName,
+                                                    body=clear_values_request_body)
+    request.execute()
+    fileRow = []
+    for i in range(totalDataCells):
+        current_cell = encrypted_data[:MAX_USABLE_CELL]
+        fileRow.append(escape_cell(current_cell))
+        encrypted_data = encrypted_data[MAX_USABLE_CELL:]
+        if i % 256 is 0 and i is not 0:
+            write_row(service, spreadsheetId, fileRow)
+            fileRow = []
+    # write the last row, if it wasnt a length of 256
+    write_row(service, spreadsheetId, fileRow)
+
+
 def add_file(service, spreadsheetId, fileid, filename, size, date, data):
     dataSpreadsheetId = add_spreadsheet(service)
     create_directory_entry(service, spreadsheetId, fileid, filename, size, date, dataSpreadsheetId)
