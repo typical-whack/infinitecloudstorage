@@ -1,6 +1,7 @@
 from __future__ import print_function
 import httplib2
 import os
+import unicodedata
 
 from apiclient import discovery
 from oauth2client import client
@@ -12,6 +13,9 @@ try:
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 except ImportError:
     flags = None
+
+MAX_CELL = 50000
+MAX_USABLE_CELL = MAX_CELL - 1 # since we have an escape character at the front
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
@@ -49,33 +53,89 @@ def get_credentials():
     return credentials
 
 def main():
-    """Shows basic usage of the Sheets API.
-
-    Creates a Sheets API service object and prints the names and majors of
-    students in a sample spreadsheet:
-    https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
+    """
+    Shows basic usage of the Sheets API.
     """
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
                     'version=v4')
-    service = discovery.build('sheets', 'v4', http=http,
-                              discoveryServiceUrl=discoveryUrl)
+    service = discovery.build('sheets', 'v4', http=http, discoveryServiceUrl=discoveryUrl)
+    spreadsheetId = '1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4'
+    file_list = list_files(service, spreadsheetId)
+    print(file_list)
+    file_contents = read_file(service, spreadsheetId, '1') # get the file data for row 1
+    print(file_contents)
 
-    spreadsheetId = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
-    rangeName = 'Class Data!A2:E'
-    result = service.spreadsheets().values().get(
-        spreadsheetId=spreadsheetId, range=rangeName).execute()
+def list_files(service, spreadsheetId):
+    rangeName = 'Sheet1!B1:B'
+    result = service.spreadsheets().values().get(spreadsheetId=spreadsheetId, range=rangeName).execute()
     values = result.get('values', [])
-
     if not values:
         print('No data found.')
     else:
-        print('Name, Major:')
+        fileList = []
         for row in values:
-            # Print columns A and E, which correspond to indices 0 and 4.
-            print('%s, %s' % (row[0], row[4]))
+            for cell in row:
+                cellData = unescape_cell(cell)
+                fileList.append(cellData)
+        return fileList
 
+def add_file(service, spreadsheetId, id, filename, data):
+    """
+    TODO: just the example code for now
+    """
+    # The A1 notation of a range to search for a logical table of data.
+    # Values will be appended after the last row of the table.
+    range_ = ''  # TODO: Update placeholder value.
+
+    # How the input data should be interpreted.
+    value_input_option = ''  # TODO: Update placeholder value.
+
+    # How the input data should be inserted.
+    insert_data_option = ''  # TODO: Update placeholder value.
+
+    value_range_body = {
+        # TODO: Add desired entries to the request body.
+    }
+    request = service.spreadsheets().values().append(spreadsheetId=spreadsheet_id, range=range_, valueInputOption=value_input_option, insertDataOption=insert_data_option, body=value_range_body)
+    response = request.execute()
+
+def read_file(service, spreadsheetId, fileId):
+    row = file_id_to_row(service, spreadsheetId, fileId)
+    return read_file(service, spreadsheetId, row)
+
+def file_id_to_row(service, spreadsheetId, id):
+    """
+    TODO: this might require another query but we probably dont want to do that...
+    """
+
+def read_file(service, spreadsheetId, row):
+    """
+    read the file stored in the associated row
+    """
+    rangeName = 'Sheet1!' + "C" + row + ":1"
+    result = service.spreadsheets().values().get(spreadsheetId=spreadsheetId, range=rangeName).execute()
+    values = result.get('values', [])
+    if not values:
+        print('No data found.')
+    else:
+        for row in values:
+            joinedData = ""
+            for cell in row:
+                cellData = unescape_cell(cell)
+                joinedData = joinedData + cellData
+            return joinedData
+
+def unescape_cell(cell):
+    # assert cell[0] is "`", "cell that you're trying to unescape isn't escaped!"
+    cellData = cell[1:]
+    normalizedCellData = unicodedata.normalize('NFKD', cellData).encode('ascii','ignore')
+    return normalizedCellData
+
+def escape_cell(data):
+    # assert data length is less or equal to MAX_USABLE_CELL
+    return "`" + data
 
 if __name__ == '__main__':
     main()
