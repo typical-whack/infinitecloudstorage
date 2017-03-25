@@ -1,0 +1,43 @@
+{
+  "name": "infinitecloudstorage",
+  "version": "1.0.0",
+  "description": "Infinite Power!",
+  "main": "index.js",
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "flask": "^0.2.10",
+    "jquery": "^3.2.1",
+    "react": "^15.4.2",
+    "react-bootstrap": "^0.30.8",
+    "react-dom": "^15.4.2",
+    "react-fileupload-progress": "^0.4.0",
+    "react-router": "^4.0.0",
+    "webpack": "^2.3.2",
+    "webpack-dev-server": "^2.4.2"
+  },
+  "scripts": {
+    "build": "webpack",
+    "start": "python app.py"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeruane/infinitecloudstorage.git"
+  },
+  "author": "Eric Parker",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jeruane/infinitecloudstorage/issues"
+  },
+  "homepage": "https://github.com/jeruane/infinitecloudstorage#readme",
+  "devDependencies": {
+    "babel-core": "^6.24.0",
+    "babel-loader": "^6.4.1",
+    "babel-preset-es2015": "^6.24.0",
+    "babel-preset-react": "^6.23.0",
+    "css-loader": "^0.27.3",
+    "file-loader": "^0.10.1",
+    "style-loader": "^0.16.0",
+    "url-loader": "^0.5.8",
+    "webpack": "^2.3.2"
+  }
+}
