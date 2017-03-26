@@ -1,4 +1,5 @@
-from flask import Flask, render_template, jsonify, redirect, url_for, request, make_response, Response
+from flask import (Flask, render_template, jsonify, redirect, url_for,
+            request, make_response, Response, current_app)
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import sys
