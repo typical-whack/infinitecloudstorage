@@ -11,18 +11,27 @@ app = Flask(__name__)
 
 from warp_drive import WarpDrive
 
-WARP_DRIVE = WarpDrive("1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4")
+WARP_DRIVE = WarpDrive("")
 
 @app.route('/set_cookie')
 def cookie_insertion():
+    global WARP_DRIVE
     redirect_to_index = redirect('/')
-    response = current_app.make_response(redirect_to_index )
-    response.set_cookie('cookie_name',value='values')
-
+    response = make_response(redirect_to_index )
+    directory_sheet_id = WARP_DRIVE.add_spreadsheet()
+    WARP_DRIVE = WarpDrive(directory_sheet_id)
+    response.set_cookie('directory_sheet_id',value=directory_sheet_id)
     return response
 
 @app.route('/')
 def hello_world():
+    global WARP_DRIVE
+    if 'directory_sheet_id' not in request.cookies:
+        redirect_to_cookie_create = redirect('/set_cookie')
+        response = make_response(redirect_to_cookie_create )
+        return response
+    if WARP_DRIVE.directory_sheet_id == "":
+        WARP_DRIVE = WarpDrive(request.cookies["directory_sheet_id"])
     return render_template('index.html')
 
 @app.route('/upload_file', methods=['POST'])
