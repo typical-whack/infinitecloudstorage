@@ -11,7 +11,8 @@ const FilePage = React.createClass({
             files: [],
             loading: 'Files Loading',
             imageLoad: false,
-            movieLoad: false
+            movieLoad: false,
+            textLoad: false
         };
     },
 
@@ -80,7 +81,7 @@ const FilePage = React.createClass({
         const tempList = this.state.files;
         tempList.forEach(function(e, index) {
             if (e.file_id === id) {
-                tempList.splice(index);
+                tempList.splice(index, index + 1);
             }
         }, this);
         this.setState({
@@ -113,8 +114,7 @@ const FilePage = React.createClass({
         api.getFile(event.target.id, event.target.text, success, error);
     },
 
-    loadImages: function(event) {
-        console.log('load');
+    loadImage: function(event) {
         const id = event.target.id.split('/')[0];
         const file_name = event.target.id.split('/')[1];
         this.setState({
@@ -124,8 +124,7 @@ const FilePage = React.createClass({
         })
     },
 
-    loadMovies: function(event) {
-        console.log('load');
+    loadMovie: function(event) {
         const id = event.target.id.split('/')[0];
         const file_name = event.target.id.split('/')[1];
         this.setState({
@@ -135,11 +134,30 @@ const FilePage = React.createClass({
         })
     },
 
+    loadText: function(event) {
+        const id = event.target.id.split('/')[0];
+        const file_name = event.target.id.split('/')[1];
+        // this.setState({
+        //     textLoad: '/get_file/' + id + '/' + file_name,
+        //     fileName: file_name,
+        //     showModal: true
+        // });
+        const success = (results) => {
+            console.log(results);
+            this.setState({
+                textLoad: results,
+                fileName: file_name,
+                showModal: true
+            })
+        };
+        api.getFile(id, file_name, success);
+    },
+
     renderFile: function(f) {
         const link = window.location.protocol + '//' + window.location.host + '/get_file/';
         const file_split = f.file_name.split('.');
         const file_type = file_split[file_split.length - 1];
-        const file_types = ['gif', 'pdf', 'jpg', 'jpeg', 'png'];
+        const image_file_types = ['gif', 'pdf', 'jpg', 'jpeg', 'png'];
         return (
             <tr key={'file:' + f.file_id}>
                 <td>
@@ -153,7 +171,7 @@ const FilePage = React.createClass({
                     <a id={f.file_id} style={{cursor:'pointer'}} onClick={this.removeFile}>
                         Remove
                     </a>
-                    {file_types.indexOf(file_type) !== -1 &&
+                    {image_file_types.indexOf(file_type) !== -1 &&
                         <span>
                             <span> | </span>
                             <a id={f.file_id+'/'+f.file_name} style={{cursor:'pointer'}}
@@ -166,7 +184,16 @@ const FilePage = React.createClass({
                         <span>
                             <span> | </span>
                             <a id={f.file_id+'/'+f.file_name} style={{cursor:'pointer'}}
-                                onClick={this.loadMovie}>
+                                onClick={this.loadMovies}>
+                                Load
+                            </a>
+                        </span>
+                    }
+                    {file_type === 'txt' &&
+                        <span>
+                            <span> | </span>
+                            <a id={f.file_id+'/'+f.file_name} style={{cursor:'pointer'}}
+                                onClick={this.loadText}>
                                 Load
                             </a>
                         </span>
@@ -190,28 +217,21 @@ const FilePage = React.createClass({
 
     closeModal: function() {
         this.setState({
-            showModal: false
+            showModal: false,
+            movieLoad: false
         })
     },
 
     render: function() {
         let modalBody = 'Nothing Passed';
-        console.log(this.state.imageLoad !== false);
-        console.log(this.state.movieLoad !== false);
         if(this.state.movieLoad !== false) {
-            modalBody = <ReactVideo
-                            ref={'VideoComp'}
-                            cls={'custom-video'}
-                            height={'100%'} width={'100%'}
-                            style={VideoStyle}
-                            muted={this.state.muted}
-                            src={'http://www.html5rocks.com/en/tutorials/video/basics/devstories.mp4'}
-                            source={this.state.source}>
-                        </ReactVideo>;
-            }
+            modalBody = <video controls style={{width: '100%'}} ><source src={this.state.movieLoad} /></video>;
+        }
         else if (this.state.imageLoad !== false) {
-            console.log('modalyBody change');
             modalBody = <img style={{width: '100%'}}src={this.state.imageLoad} />;
+        }
+        else if (this.state.textLoad !== false) {
+            modalBody = this.state.textLoad;
         }
         return (
             <div>
