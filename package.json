@@ -13,6 +13,7 @@
     "react-dropzone": "^3.12.2",
     "react-fileupload-progress": "^0.4.0",
     "react-router": "^4.0.0",
+    "react.video": "^1.0.14",
     "webpack": "^2.3.2",
     "webpack-dev-server": "^2.4.2"
   },
@@ -37,6 +38,7 @@
     "babel-preset-react": "^6.23.0",
     "css-loader": "^0.27.3",
     "file-loader": "^0.10.1",
+    "image-webpack-loader": "^3.3.0",
     "style-loader": "^0.16.0",
     "url-loader": "^0.5.8",
     "webpack": "^2.3.2"

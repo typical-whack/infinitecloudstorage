@@ -1,14 +1,17 @@
 import React from 'react';
-import { Button, Col, Grid, Jumbotron, PageHeader, Row} from 'react-bootstrap';
+import { Button, Col, Grid, Jumbotron, PageHeader, Row, Modal} from 'react-bootstrap';
 import FileUploadProgress from 'react-fileupload-progress';
 import ReactDOM from 'react-dom';
 import api from './api.js';
+import ReactVideo from 'react.video';
 
 const FilePage = React.createClass({
     getInitialState() {
         return {
             files: [],
-            loading: 'Files Loading'
+            loading: 'Files Loading',
+            imageLoad: false,
+            movieLoad: false
         };
     },
 
@@ -66,7 +69,7 @@ const FilePage = React.createClass({
                         </tr>
                     </thead>
                     <tbody>
-                    {this.state.files.map(this.renderFile)}
+                        {this.state.files.map(this.renderFile)}
                     </tbody>
                 </table>
             </div>
@@ -94,6 +97,7 @@ const FilePage = React.createClass({
                 error: 'Failed to remove file'
             });
         };
+
         api.deleteFile(event.target.id, success, error);
     },
 
@@ -109,8 +113,33 @@ const FilePage = React.createClass({
         api.getFile(event.target.id, event.target.text, success, error);
     },
 
+    loadImages: function(event) {
+        console.log('load');
+        const id = event.target.id.split('/')[0];
+        const file_name = event.target.id.split('/')[1];
+        this.setState({
+            imageLoad: '/get_file/' + id + '/' + file_name,
+            fileName: file_name,
+            showModal: true
+        })
+    },
+
+    loadMovies: function(event) {
+        console.log('load');
+        const id = event.target.id.split('/')[0];
+        const file_name = event.target.id.split('/')[1];
+        this.setState({
+            movieLoad: '/get_file/' + id + '/' + file_name,
+            fileName: file_name,
+            showModal: true
+        })
+    },
+
     renderFile: function(f) {
         const link = window.location.protocol + '//' + window.location.host + '/get_file/';
+        const file_split = f.file_name.split('.');
+        const file_type = file_split[file_split.length - 1];
+        const file_types = ['gif', 'pdf', 'jpg', 'jpeg', 'png'];
         return (
             <tr key={'file:' + f.file_id}>
                 <td>
@@ -124,9 +153,27 @@ const FilePage = React.createClass({
                     <a id={f.file_id} style={{cursor:'pointer'}} onClick={this.removeFile}>
                         Remove
                     </a>
+                    {file_types.indexOf(file_type) !== -1 &&
+                        <span>
+                            <span> | </span>
+                            <a id={f.file_id+'/'+f.file_name} style={{cursor:'pointer'}}
+                                onClick={this.loadImages}>
+                                Load
+                            </a>
+                        </span>
+                    }
+                    {file_type === 'mov' &&
+                        <span>
+                            <span> | </span>
+                            <a id={f.file_id+'/'+f.file_name} style={{cursor:'pointer'}}
+                                onClick={this.loadMovie}>
+                                Load
+                            </a>
+                        </span>
+                    }
                 </td>
             </tr>
-         );
+        );
     },
 
     addFile: function(file_list) {
@@ -141,12 +188,50 @@ const FilePage = React.createClass({
         });
     },
 
+    closeModal: function() {
+        this.setState({
+            showModal: false
+        })
+    },
+
     render: function() {
+        let modalBody = 'Nothing Passed';
+        console.log(this.state.imageLoad !== false);
+        console.log(this.state.movieLoad !== false);
+        if(this.state.movieLoad !== false) {
+            modalBody = <ReactVideo
+                            ref={'VideoComp'}
+                            cls={'custom-video'}
+                            height={'100%'} width={'100%'}
+                            style={VideoStyle}
+                            muted={this.state.muted}
+                            src={'http://www.html5rocks.com/en/tutorials/video/basics/devstories.mp4'}
+                            source={this.state.source}>
+                        </ReactVideo>;
+            }
+        else if (this.state.imageLoad !== false) {
+            console.log('modalyBody change');
+            modalBody = <img style={{width: '100%'}}src={this.state.imageLoad} />;
+        }
         return (
             <div>
                 <PageHeader className='container'>Infinite Cloud Storage!</PageHeader>
+                {this.state.showModal &&
+                    <Modal bsSize='large' show={this.state.showModal} onHide={this.closeModal}>
+                        <Modal.Header closeButton>
+                            <Modal.Title>{this.state.fileName}</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <div >
+                                {modalBody}
+                            </div>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button onClick={this.closeModal}>Close</Button>
+                        </Modal.Footer>
+                    </Modal>
+                }
                 <div className='container'>
-
                     <FileUploadProgress key='ex2' url='http://localhost:5000/upload_file'
                         onLoad={ (e, request) => {
                             const file_list = JSON.parse(e.target.response).data;
@@ -160,15 +245,15 @@ const FilePage = React.createClass({
                 </div>
                 {this.state.files.length
                     ? <div className='container'>
-                        {this.renderTable()}
-                    </div>
-                    : <div className='container'>
-                        <p> {this.state.loading} </p>
-                    </div>
-                }
+                    {this.renderTable()}
+                </div>
+                : <div className='container'>
+                <p> {this.state.loading} </p>
             </div>
-        );
-    }
+        }
+    </div>
+);
+}
 });
 
 const styles = {
