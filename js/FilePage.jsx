@@ -208,7 +208,8 @@ const FilePage = React.createClass({
             'file_id': file_list[0],
             'file_name': file_list[1],
             'size': file_list[2],
-            'date': file_list[3]
+            'date': file_list[3],
+            'raw_size': file_list[4]
         }
         this.setState({
             files: this.state.files.concat(file)
@@ -224,10 +225,20 @@ const FilePage = React.createClass({
         })
     },
 
+    renderTotalBytes: function() {
+        let total = 0;
+        this.state.files.forEach(function(e, index) {
+            total += parseInt(e.raw_size);
+        }, this);
+        return (
+            <span>Total bytes stored for free: {total}</span>
+        );
+    },
+
     render: function() {
         let modalBody = 'Nothing Passed';
         if(this.state.movieLoad !== false) {
-            modalBody = <video controls style={{width: '100%'}} ><source src={this.state.movieLoad} /></video>;
+            modalBody = <video autoplay controls style={{width: '100%'}} ><source src={this.state.movieLoad} /></video>;
         }
         else if (this.state.imageLoad !== false) {
             modalBody = <img style={{width: '100%'}}src={this.state.imageLoad} />;
@@ -269,6 +280,7 @@ const FilePage = React.createClass({
                 {this.state.files.length
                     ? <div className='container'>
                     {this.renderTable()}
+                    {this.renderTotalBytes()}
                 </div>
                 : <div className='container'>
                 <p> {this.state.loading} </p>

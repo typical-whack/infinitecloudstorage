@@ -47,7 +47,7 @@ def add_file():
         len_data = len(data)
         len_file = WARP_DRIVE.sizeof_fmt(len_data)
         WARP_DRIVE.add_file(file_id, filename, len(data), current_time, data)
-        return success((file_id, filename, len_file, now.strftime('%d/%m/%Y at %I:%M:%S %p')))
+        return success((file_id, filename, len_file, now.strftime('%d/%m/%Y at %I:%M:%S %p'), len_data))
     else:
         return error(httplib.BAD_REQUEST, 'No file/bad file')
 
