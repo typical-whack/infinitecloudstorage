@@ -143,7 +143,7 @@ const FilePage = React.createClass({
 
     render: function() {
         return (
-            <Jumbotron>
+            <div>
                 <PageHeader className='container'>Infinite Cloud Storage!</PageHeader>
                 <div className='container'>
 
@@ -166,23 +166,12 @@ const FilePage = React.createClass({
                         <p> {this.state.loading} </p>
                     </div>
                 }
-            </Jumbotron>
+            </div>
         );
     }
 });
 
 const styles = {
-    progressWrapper: {
-        height: '50px',
-        marginTop: '10px',
-        width: '400px',
-        float:'left',
-        overflow: 'hidden',
-        backgroundColor: '#f5f5f5',
-        borderRadius: '4px',
-        WebkitBoxShadow: 'inset 0 1px 2px rgba(0,0,0,.1)',
-        boxShadow: 'inset 0 1px 2px rgba(0,0,0,.1)'
-    },
     progressBar: {
         float: 'left',
         width: '0',
@@ -198,23 +187,6 @@ const styles = {
         Otransition: 'width .6s ease',
         transition: 'width .6s ease'
     },
-    cancelButton: {
-        marginTop: '5px',
-        WebkitAppearance: 'none',
-        padding: 0,
-        cursor: 'pointer',
-        background: '0 0',
-        border: 0,
-        float: 'left',
-        fontSize: '21px',
-        fontWeight: 700,
-        lineHeight: 1,
-        color: '#000',
-        textShadow: '0 1px 0 #fff',
-        filter: 'alpha(opacity=20)',
-        opacity: '.2'
-    },
-
     bsButton: {
         marginRight: 'auto',
         marginLeft: 'auto',
