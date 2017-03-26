@@ -157,7 +157,7 @@ const FilePage = React.createClass({
         const link = window.location.protocol + '//' + window.location.host + '/get_file/';
         const file_split = f.file_name.split('.');
         const file_type = file_split[file_split.length - 1];
-        const image_file_types = ['gif', 'pdf', 'jpg', 'jpeg', 'png'];
+        const image_file_types = ['gif', 'jpg', 'jpeg', 'png'];
         return (
             <tr key={'file:' + f.file_id}>
                 <td>
