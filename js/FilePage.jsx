@@ -175,7 +175,7 @@ const FilePage = React.createClass({
                         <span>
                             <span> | </span>
                             <a id={f.file_id+'/'+f.file_name} style={{cursor:'pointer'}}
-                                onClick={this.loadImages}>
+                                onClick={this.loadImage}>
                                 Load
                             </a>
                         </span>
@@ -184,7 +184,7 @@ const FilePage = React.createClass({
                         <span>
                             <span> | </span>
                             <a id={f.file_id+'/'+f.file_name} style={{cursor:'pointer'}}
-                                onClick={this.loadMovies}>
+                                onClick={this.loadMovie}>
                                 Load
                             </a>
                         </span>
@@ -218,7 +218,9 @@ const FilePage = React.createClass({
     closeModal: function() {
         this.setState({
             showModal: false,
-            movieLoad: false
+            movieLoad: false,
+            textLoad: false,
+            imageLoad: false
         })
     },
 
@@ -231,7 +233,8 @@ const FilePage = React.createClass({
             modalBody = <img style={{width: '100%'}}src={this.state.imageLoad} />;
         }
         else if (this.state.textLoad !== false) {
-            modalBody = this.state.textLoad;
+            console.log(this.state.textLoad);
+            modalBody = <pre>{this.state.textLoad}</pre>;
         }
         return (
             <div>
@@ -242,7 +245,7 @@ const FilePage = React.createClass({
                             <Modal.Title>{this.state.fileName}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            <div >
+                            <div>
                                 {modalBody}
                             </div>
                         </Modal.Body>
