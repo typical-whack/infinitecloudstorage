@@ -45,6 +45,13 @@ class WarpDrive:
         self.sheets_service = service
         self.directory_sheet_id = directory_sheet_id
 
+    # def sizeof_fmt(num, suffix='B'):
+    #     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+    #         if num < 1024.0:
+    #             return "%3.1f%s%s" % (num, unit, suffix)
+    #         num /= 1024.0
+    #         return "%.1f%s%s" % (num, 'Yi', suffix)
+
     def list_files(self):
         rangeName = 'Sheet1!A1:E'
         result = self.sheets_service.spreadsheets().values().get(spreadsheetId=self.directory_sheet_id, range=rangeName).execute()
