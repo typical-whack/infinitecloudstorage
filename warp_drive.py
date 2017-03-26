@@ -66,7 +66,9 @@ class WarpDrive:
                          'file_name': WarpDrive.unescape_cell(row[1]),
                          'size': self.sizeof_fmt(WarpDrive.unescape_cell(row[2])),
                          'date': parser.parse(WarpDrive.unescape_cell(row[3])).strftime('%d/%m/%Y at %I:%M:%S %p'),
-                         'data_sheet_id': WarpDrive.unescape_cell(row[4])}
+                         'data_sheet_id': WarpDrive.unescape_cell(row[4]),
+                         'raw_size': WarpDrive.unescape_cell(row[2])
+                         }
 
                 fileList.append(fileData)
             return fileList
