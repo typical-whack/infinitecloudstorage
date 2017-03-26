@@ -111,14 +111,16 @@ class WarpDrive:
             encrypted_data = encrypted_data[MAX_USABLE_CELL:]
             if i % 256 is 0 and i is not 0:
                 self.write_row(data_sheet_id, file_row)
-                fileRow = []
+                file_row = []
         # write the last row, if it wasnt a length of 256
         self.write_row(data_sheet_id, file_row)
+        print("last row written")
 
     def write_row(self, data_sheet_id, row_data):
         # expecting rowData to be a list of string. each string with a length of 50000 or less
         # the entire list being of length 256 or less.
         # each string is escaped with a `
+        print("writing row")
         range_name = 'Sheet1!A1:ZZZ'
         value_input_option = 'RAW'
         insert_data_option = 'INSERT_ROWS'
@@ -150,15 +152,16 @@ class WarpDrive:
         for row in range(1, MAX_ROWS):
             is_data, data = self.read_row(data_sheet_id, row, True)
             if not is_data:
-                return joined_data
+                return FERNET_CIPHER.decrypt(joined_data)
             joined_data += data
-        return joined_data
+
+        return FERNET_CIPHER.decrypt(joined_data)
 
     def read_row(self, data_sheet_id, row, should_decrypt):
-        rangeName = 'Sheet1!' + "A" + str(row) + ":" + str(row)
-        result = self.sheets_service.spreadsheets().values().get(spreadsheetId=data_sheet_id, range=rangeName).execute()
+        range_name = 'Sheet1!' + "A" + str(row) + ":" + str(row)
+        result = self.sheets_service.spreadsheets().values().get(spreadsheetId=data_sheet_id, range=range_name).execute()
         values = result.get('values', [])
-
+        joined_data = ""
         if not values:
             return False, ""
         else:
@@ -167,9 +170,8 @@ class WarpDrive:
                 for cell in row:
                     cell_data = WarpDrive.unescape_cell(cell)
                     joined_data = joined_data + cell_data
-                if should_decrypt:
-                    return True, FERNET_CIPHER.decrypt(joined_data)
-                return True, joined_data
+
+            return True, joined_data
 
     def delete_file(self, file_id):
         range_name = 'Sheet1!A1:E'
@@ -250,28 +252,26 @@ class WarpDrive:
         # assert data length is less or equal to MAX_USABLE_CELL
         return "`" + str(data)
 
-def update_file(service, spreadsheetId, data):
-    rangeName = 'Sheet1!A1:ZZZ'
+# def update_file(service, spreadsheetId, data):
+#     rangeName = 'Sheet1!A1:ZZZ'
+#
+#     encrypted_data = FERNET_CIPHER.encrypt(data)
+#     totalDataCells = int(ceil(float(len(encrypted_data)) / float(MAX_USABLE_CELL)))
+#     print(len(encrypted_data))
+#     print(totalDataCells)
+#
+#     clear_values_request_body = { }
+#     request = service.spreadsheets().values().clear(spreadsheetId=spreadsheetId, range=rangeName,
+#                                                     body=clear_values_request_body)
+#     request.execute()
+#     fileRow = []
+#     for i in range(totalDataCells):
+#         current_cell = encrypted_data[:MAX_USABLE_CELL]
+#         fileRow.append(WarpDrive.escape_cell(current_cell))
+#         encrypted_data = encrypted_data[MAX_USABLE_CELL:]
+#         if i % 256 is 0 and i is not 0:
+#             write_row(service, spreadsheetId, fileRow)
+#             fileRow = []
+#     # write the last row, if it wasnt a length of 256
+#     write_row(service, spreadsheetId, fileRow)
 
-    encrypted_data = FERNET_CIPHER.encrypt(data)
-    totalDataCells = int(ceil(float(len(encrypted_data)) / float(MAX_USABLE_CELL)))
-    print(len(encrypted_data))
-    print(totalDataCells)
-
-    clear_values_request_body = { }
-    request = service.spreadsheets().values().clear(spreadsheetId=spreadsheetId, range=rangeName,
-                                                    body=clear_values_request_body)
-    request.execute()
-    fileRow = []
-    for i in range(totalDataCells):
-        current_cell = encrypted_data[:MAX_USABLE_CELL]
-        fileRow.append(WarpDrive.escape_cell(current_cell))
-        encrypted_data = encrypted_data[MAX_USABLE_CELL:]
-        if i % 256 is 0 and i is not 0:
-            write_row(service, spreadsheetId, fileRow)
-            fileRow = []
-    # write the last row, if it wasnt a length of 256
-    write_row(service, spreadsheetId, fileRow)
-
-if __name__ == '__main__':
-    main()
