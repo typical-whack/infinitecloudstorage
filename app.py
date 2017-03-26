@@ -1,4 +1,5 @@
-from flask import Flask, render_template, jsonify, redirect, url_for, request, make_response, Response
+from flask import (Flask, render_template, jsonify, redirect, url_for,
+            request, make_response, Response, current_app)
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import sys
@@ -12,9 +13,17 @@ from warp_drive import WarpDrive
 
 WARP_DRIVE = WarpDrive("1RNNyvtmW0dbSzVTew_FyoUsfYmQOmvMoNH_FeP_yAn4")
 
+@app.route('/set_cookie')
+def cookie_insertion():
+    redirect_to_index = redirect('/')
+    response = current_app.make_response(redirect_to_index )
+    response.set_cookie('cookie_name',value='values')
+
+    return response
+
 @app.route('/')
 def hello_world():
-  return render_template('index.html')
+    return render_template('index.html')
 
 @app.route('/upload_file', methods=['POST'])
 def add_file():
