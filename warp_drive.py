@@ -110,7 +110,7 @@ class WarpDrive:
             file_row.append(WarpDrive.escape_cell(current_cell))
             encrypted_data = encrypted_data[MAX_USABLE_CELL:]
             if i % 256 is 0 and i is not 0:
-                self.write_row(spreadsheetId, file_row)
+                self.write_row(data_sheet_id, file_row)
                 fileRow = []
         # write the last row, if it wasnt a length of 256
         self.write_row(data_sheet_id, file_row)
