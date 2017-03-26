@@ -23,12 +23,8 @@ function deleteFile(id, success, error) {
 
 function getFile(id, file_name, success, error) {
     $.ajax({
-        url: '/get_file',
+        url: '/get_file/' + id + '/' + file_name,
         method: 'GET',
-        data: {
-            id: id,
-            file_name: file_name
-        },
         success: success,
         error: error
     });
