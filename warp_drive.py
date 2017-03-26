@@ -10,6 +10,7 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 from math import *
+from dateutil import parser
 
 try:
     import argparse
@@ -56,7 +57,7 @@ class WarpDrive:
                 fileData = {'file_id': WarpDrive.unescape_cell(row[0]),
                          'file_name': WarpDrive.unescape_cell(row[1]),
                          'size': WarpDrive.unescape_cell(row[2]),
-                         'date': WarpDrive.unescape_cell(row[3]),
+                         'date': parser.parse(WarpDrive.unescape_cell(row[3])).strftime('%d/%m/%Y at %I:%M:%S %p'),
                          'data_sheet_id': WarpDrive.unescape_cell(row[4])}
 
                 fileList.append(fileData)
@@ -111,7 +112,7 @@ class WarpDrive:
             encrypted_data = encrypted_data[MAX_USABLE_CELL:]
             if i % 256 is 0 and i is not 0:
                 self.write_row(data_sheet_id, file_row)
-                fileRow = []
+                file_row = []
         # write the last row, if it wasnt a length of 256
         self.write_row(data_sheet_id, file_row)
 

@@ -45,7 +45,7 @@ def add_file():
         file_id = uuid.uuid4()
 
         WARP_DRIVE.add_file(file_id, filename, len(data), current_time, data)
-        return success((file_id, filename, len(data), now.isoformat()))
+        return success((file_id, filename, len(data), now.strftime('%d/%m/%Y at %I:%M:%S %p')))
     else:
         return error(httplib.BAD_REQUEST, 'No file/bad file')
 
